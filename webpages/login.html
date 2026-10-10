@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign in · OT/ICS Cybersecurity Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <div class="split">
+        <section class="brand">
+            <div class="logo">OT/ICS CYBERSECURITY MONITOR</div>
+            <div>
+                <h1>Secure control for every fan unit.</h1>
+                <p>Switch machines on, watch temperature and set speed, with every action tied to your badge.</p>
+            </div>
+            <div class="st">● Reader connected · Fan Unit 01</div>
+        </section>
+        <section class="signin">
+            <div id="waiting" class="panel">
+                <h2>Tap your badge to sign in</h2>
+                <p>Hold your badge flat against the reader.</p>
+                <button onclick="read_rfid()" class="reader"><svg width="200" height="150" viewBox="0 0 200 150" fill="none"
+                        aria-label="Badge held to reader">
+                        <rect x="20" y="70" width="110" height="70" rx="10" fill="#fff" stroke="#001438"
+                            stroke-width="3" />
+                        <circle cx="48" cy="98" r="10" fill="#0645BE" />
+                        <rect x="66" y="92" width="48" height="6" rx="3" fill="#C9D0D6" />
+                        <rect x="66" y="106" width="34" height="6" rx="3" fill="#C9D0D6" />
+                        <g stroke="#0645BE" stroke-width="4" stroke-linecap="round">
+                            <path d="M150 60 a22 22 0 0 1 0 -30" />
+                            <path d="M164 70 a40 40 0 0 0 0 -50" />
+                            <path d="M178 80 a58 58 0 0 0 0 -70" />
+                        </g>
+                    </svg></button>
+                <p class="wait">● Waiting for badge</p>
+                <div class="or">Or</div>
+                <p class="btn ghost wide">Sign in with username and password instead</p>
+                <form method="POST">
+
+                    <input name="username" placeholder="Username" required autocomplete="username"
+                        class="btn ghost wide">
+
+
+                    <input name="password" type="password" placeholder="Password" required
+                        autocomplete="current-password" class="btn ghost wide">
+
+                    <button type="submit" class="btn ghost wide">LOGIN</button>
+
+                </form>
+                <p class="error" id="error"></p>
+            </div>
+        </section>
+    </div>
+    <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fan Unit 01 · OT/ICS Cybersecurity Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+</head>
+
+<body>
+    <header class="top">
+        <div class="logo">OT/ICS CYBERSECURITY MONITOR</div>
+        <nav><span>Fan Unit 01 · <p id="connection">● Online</p></span><span>Guido · Operator</span>
+            <form method="POST" action="/logout"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button
+                    class="btn ghost" type="submit">Sign
+                    out</button></form>
+        </nav>
+    </header>
+    <main class="main" style="margin:0 auto">
+        <div class="head">
+            <h1>Fan Unit 01</h1><button id="estop" class="btn danger" style="min-height:52px">EMERGENCY STOP</button>
+        </div>
+        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr));align-items:start">
+            <div class="stack">
+                <section class="card sp">
+                    <div>
+                        <p class="k">Machine power</p>
+                        <div id="power-state" class="big ok">On</div>
+                        <p id="power-detail" class="sub">Running</p>
+                    </div><button id="power" class="power-switch" aria-pressed="false"
+                        aria-label="Machine power"><b>Off</b><i></i></button>
+                </section>
+                <section class="card">
+                    <p class="k">Fan speed</p>
+                    <fieldset id="speed-controls">
+                        <div class="spd"><button id="speed-minus" class="sq" aria-label="Decrease speed">−</button>
+                            <div style="text-align:center">
+                                <div id="speed-val" class="huge">100%</div>
+                                <p id="rpm" class="sub">1,450 RPM</p>
+                            </div><button id="speed-plus" class="sq pl" aria-label="Increase speed">+</button>
+                        </div>
+                        <input id="speed-range" type="range" min="50" max="100" value="100" aria-label="Fan speed">
+                        <div class="presets"><button class="chip" data-speed="55">Low 55%</button><button class="chip"
+                                data-speed="75">Medium 75%</button><button class="chip" data-speed="100">High
+                                100%</button></div>
+                    </fieldset>
+                    <p id="speed-hint" class="sub" hidden>Turn the machine on to change speed.</p>
+                </section>
+            </div>
+            <div class="stack">
+                <section class="card">
+                    <div class="sp" style="align-items:flex-start">
+                        <div>
+                            <p class="k">Temperature</p>
+                            <div class="huge" style="font-size:72px" id="temperature"></div>
+                        </div><span class="pill run">Normal</span>
+                    </div>
+                    <div class="bar t" style="margin:28px 0 8px"><i id="percentage"></i><u></u></div>
+                    <div class="sp muted" style="font-size:14px"><span>0 °C</span><span>Warning at 50 °C</span><span>100
+                            °C</span></div>
+                </section>
+                <section class="card">
+                    <p class="k">Temperature, last 10 minutes</p><svg viewBox="0 0 600 220" width="100%" role="img"
+                        aria-label="Temperature chart">
+                        <line x1="56" y1="20" x2="590" y2="20" stroke="#E1E5E8" /><text x="46" y="25" text-anchor="end"
+                            font-size="14" fill="#4A5560">40 °C</text>
+                        <line x1="56" y1="100" x2="590" y2="100" stroke="#E1E5E8" /><text x="46" y="105"
+                            text-anchor="end" font-size="14" fill="#4A5560">35 °C</text>
+                        <line x1="56" y1="180" x2="590" y2="180" stroke="#E1E5E8" /><text x="46" y="185"
+                            text-anchor="end" font-size="14" fill="#4A5560">30 °C</text>
+                        <polyline id="temperature-graph" points="" fill="none" stroke="#0645BE" stroke-width="3.5"
+                            stroke-linejoin="round" stroke-linecap="round" /><text x="56" y="212" font-size="14"
+                            fill="#4A5560">10 min
+                            ago</text><text x="590" y="212" text-anchor="end" font-size="14" fill="#4A5560">Now</text>
+                    </svg>
+                    <div class="sp" style="justify-content:flex-start;gap:48px;margin-top:12px">
+                        <div>
+                            <p class="k" style="margin:0 0 4px">Power draw</p><b style="font-size:24px">0.8 kW</b>
+                        </div>
+                        <div>
+                            <p class="k" style="margin:0 0 4px">Runtime today</p><b style="font-size:24px">6 h 40
+                                min</b>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+    <script>
+        // Demo behaviour only. Replace the TODO parts with real calls to your backend.
+        const q = s => document.querySelector(s);
+        // Login: simulate a badge reader (TODO: replace with the real badge-reader event)
+        document.addEventListener('click', e => { const b = e.target.closest('[data-sim]'); if (!b) return; const s = b.dataset.sim; if (s === 'ok') { location.href = 'welcome.html'; return } q('#waiting').hidden = s === 'fail'; q('#error').hidden = s !== 'fail'; });
+        // Operator dashboard: power, speed (TODO: send commands to the fan unit)
+        const pw = q('#power');
+        if (pw) {
+            let on = false, sp = 100;
+            const set = async v => { sp = Math.max(50, Math.min(100, v)); await fetch("/api/motor/speed", { method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken }, body: JSON.stringify({ speed: sp }) }); q('#speed-val').textContent = sp + '%'; q('#rpm').textContent = Math.round(sp * 24.17).toLocaleString('en-US') + ' RPM'; q('#speed-range').value = sp; document.querySelectorAll('[data-speed]').forEach(b => b.classList.toggle('sel', +b.dataset.speed === sp)); };
+            const render = () => { pw.setAttribute('aria-pressed', on); pw.querySelector('b').textContent = on ? 'On' : 'Off'; const s = q('#power-state'); s.textContent = on ? 'On' : 'Off'; s.className = 'big ' + (on ? 'ok' : 'muted'); q('#power-detail').textContent = on ? 'Running' : 'Stopped'; q('#speed-controls').disabled = !on; q('#speed-hint').hidden = on; };
+            pw.onclick = () => { sendMotorCommand(!on ? 'on' : 'off'); on = !on; render() }; q('#estop').onclick = () => { on = false; sendMotorCommand('off'); render() };
+            q('#speed-minus').onclick = () => set(sp - 5); q('#speed-plus').onclick = () => set(sp + 5); q('#speed-range').oninput = e => set(+e.target.value);
+            document.querySelectorAll('[data-speed]').forEach(b => b.onclick = () => set(+b.dataset.speed)); set(100); render();
+        }
+
+        const csrfToken = {{ csrf_token | tojson }};
+
+
+        function updateSpeedLabel() {
+
+            const speed =
+                document.getElementById("speedSlider").value;
+
+            document.getElementById(
+                "selectedSpeed"
+            ).textContent = speed + "%";
+        }
+
+        async function activateSecurityAlarm(message) {
+
+            try {
+                const response = await fetch(
+                    "/api/activate_security_alarm/" + encodeURIComponent(message),
+                    {
+                        method: "POST",
+                        headers: {
+                            "X-CSRF-Token": csrfToken
+                        }
+                    }
+                );
+                const result = await response.json();
+                console.log(result.message || result.error);
+            } catch (error) {
+                console.error("Failed to activate security alarm");
+            }
+        }
+
+        async function sendMotorCommand(action) {
+
+            console.log("Sending motor command:", action);
+
+            const message =
+                document.getElementById("commandMessage");
+
+            try {
+
+                const response = await fetch(
+                    "/api/motor/" + action,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "X-CSRF-Token": csrfToken
+                        }
+                    }
+                );
+
+                const result = await response.json();
+
+                message.textContent =
+                    result.message || result.error;
+
+            } catch (error) {
+
+                message.textContent =
+                    "Motor command failed";
+            }
+        }
+
+
+        async function applySpeed() {
+
+            const speed = Number(
+                document.getElementById("speedSlider").value
+            );
+
+            const message =
+                document.getElementById("commandMessage");
+
+            try {
+
+                const response = await fetch(
+                    "/api/motor/speed",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-Token": csrfToken
+                        },
+
+                        body: JSON.stringify({
+                            speed: speed
+                        })
+                    }
+                );
+
+                const result = await response.json();
+
+                message.textContent =
+                    result.message || result.error;
+
+            } catch (error) {
+
+                message.textContent =
+                    "Speed command failed";
+            }
+        }
+
+        var temperatureHistory = [];
+
+        async function updateDashboard() {
+
+            try {
+
+                const response = await fetch("/api/status");
+
+                if (!response.ok) {
+                    throw new Error("Connection error");
+                }
+
+                const data = await response.json();
+
+                document.getElementById(
+                    "temperature"
+                ).textContent =
+                    data.temperature === null
+                        ? "--"
+                        : data.temperature + " °F";
+
+                document.getElementById("percentage").style.width = (data.temperature - 32) / 1.8 + 30 + "%";
+
+                // const temperatureHistory = [];
+
+                function updateTemperatureGraph(temperature) {
+                    const graph = document.getElementById("temperature-graph");
+                    const value = Number(temperature);
+                    console.log("Temperature value:", value);
+
+                    temperatureHistory.push(value);
+                    console.log("Temperature history:", temperatureHistory);
+                    if (temperatureHistory.length > 12) temperatureHistory.shift();
+
+                    const points = temperatureHistory.map((temp, index) => {
+                        const x = 56 + index * (534 / Math.max(temperatureHistory.length - 1, 1));
+                        const y = -temp + 100; // 30°C at bottom; 40°C at top
+                        console.log(`Point for temp ${temp}: (${x}, ${y})`);
+                        return `${x},${y}`;
+                    }).join(" ");
+
+                    console.log("SVG points string:", points);
+                    graph.setAttribute("points", points);
+                }
+
+                updateTemperatureGraph(data.temperature);
+
+                motorStatus = data.motor;
+
+                //         document.getElementById(
+                //             "speed"
+                //         ).textContent = data.speed + "% PWM";
+
+                //         const connection =
+                //             document.getElementById("connection");
+
+                //         connection.textContent =
+                //             data.connected ? "ONLINE" : "OFFLINE";
+
+                //         connection.className =
+                //             data.connected
+                //                 ? "value green"
+                //                 : "value red";
+
+                //         const security =
+                //             document.getElementById("security");
+
+                //         if (data.security_alert) {
+
+                //             security.textContent =
+                //                 data.security_message;
+
+                //             security.className = "value red";
+
+                //         } else if (data.temperature_alert) {
+                //             sendMotorCommand('off');
+                //             activateSecurityAlarm("Overheating");
+
+                //             security.textContent =
+                //                 data.security_message;
+
+                //             security.className = "value red";
+
+                //         } else {
+
+                //             security.textContent =
+                //                 "SYSTEM NORMAL";
+
+                //             security.className = "value green";
+                //         }
+
+                //         document.getElementById(
+                //             "updated"
+                //         ).textContent =
+                //             data.last_update || "--";
+
+            } catch (error) {
+
+                document.getElementById(
+                    "connection"
+                ).textContent = "OFFLINE";
+
+            }
+        }
+
+        updateDashboard();
+
+        setInterval(updateDashboard, 2000);
+
+
+    </script>
+</body>
+
+</script>
+
+</body>
+
+</html>

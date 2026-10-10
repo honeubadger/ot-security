@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1">
+
+<title>OT/ICS Cybersecurity Monitor</title>
+
+<style>
+
+body {
+    background: #0f172a;
+    color: white;
+    font-family: Arial, sans-serif;
+    padding: 25px;
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+}
+
+h1 {
+    color: #38bdf8;
+}
+
+.subtitle {
+    color: #94a3b8;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.card {
+    background: #1e293b;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.label {
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.value {
+    font-size: 30px;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+.green {
+    color: #4ade80;
+}
+
+.red {
+    color: #f87171;
+}
+
+.blue {
+    color: #38bdf8;
+}
+
+.panel {
+    background: #1e293b;
+    padding: 25px;
+    border-radius: 12px;
+    margin-top: 25px;
+}
+
+button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 5px;
+    font-weight: bold;
+}
+
+.start {
+    background: #22c55e;
+    color: #052e16;
+}
+
+.stop {
+    background: #ef4444;
+    color: white;
+}
+
+.apply {
+    background: #38bdf8;
+    color: #082f49;
+}
+
+.logout {
+    background: #475569;
+    color: white;
+}
+.create-user {
+    background: #0284c7;
+    color: white;
+}
+
+input[type="range"] {
+    width: 100%;
+    max-width: 400px;
+}
+
+.message {
+    margin-top: 15px;
+    color: #facc15;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>OT/ICS CYBERSECURITY MONITOR</h1>
+
+<p class="subtitle">
+Raspberry Pi 5 + ELEGOO UNO R3
+</p>
+
+<form method="POST" action="/logout">
+<input
+    type="hidden"
+    name="csrf_token"
+    value="{{ csrf_token }}">
+
+<button class="logout" type="submit">
+LOGOUT
+</button>
+</form>
+
+<form method="POST" action="/users">
+<button class="create-user" type="submit">
+CREATE USER
+</button>
+</form>
+
+<div class="cards">
+
+<div class="card">
+    <div class="label">TEMPERATURE</div>
+    <div class="value blue" id="temperature">--</div>
+</div>
+
+<div class="card">
+    <div class="label">MOTOR STATUS</div>
+    <div class="value" id="motor">--</div>
+</div>
+
+<div class="card">
+    <div class="label">MOTOR SPEED</div>
+    <div class="value blue" id="speed">--</div>
+</div>
+
+<div class="card">
+    <div class="label">ARDUINO CONNECTION</div>
+    <div class="value" id="connection">--</div>
+</div>
+
+</div>
+
+<div class="panel">
+
+<h2>MOTOR CONTROL</h2>
+
+<p>Authorized users only</p>
+
+<button class="start" onclick="sendMotorCommand('on')">
+START MOTOR
+</button>
+
+<button class="stop" onclick="sendMotorCommand('off')">
+STOP MOTOR
+</button>
+
+<h3>Motor Speed</h3>
+
+<input
+    type="range"
+    id="speedSlider"
+    min="50"
+    max="100"
+    step="10"
+    value="70"
+    oninput="updateSpeedLabel()">
+
+<p>
+Selected Speed:
+<strong id="selectedSpeed">70%</strong>
+</p>
+
+<button class="apply" onclick="applySpeed()">
+APPLY SPEED
+</button>
+
+<p class="message" id="commandMessage"></p>
+
+</div>
+
+<div class="panel">
+
+<h2>SECURITY STATUS</h2>
+
+<div class="value green" id="security">
+SYSTEM NORMAL
+</div>
+
+</div>
+
+<p class="subtitle">
+Last update:
+<span id="updated">--</span>
+</p>
+
+</div>
+
+<script>
+
+const csrfToken = {{ csrf_token | tojson }};
+
+
+function updateSpeedLabel() {
+
+    const speed =
+        document.getElementById("speedSlider").value;
+
+    document.getElementById(
+        "selectedSpeed"
+    ).textContent = speed + "%";
+}
+
+async function activateSecurityAlarm(message) {
+	
+	try {
+		const response = await fetch(
+			"/api/activate_security_alarm/" + encodeURIComponent(message),
+			{
+				method: "POST",
+				headers: {
+					"X-CSRF-Token": csrfToken
+				}
+			}
+		);
+		const result = await response.json();
+		console.log(result.message || result.error);
+	} catch (error) {
+		console.error("Failed to activate security alarm");
+	}
+}
+
+async function sendMotorCommand(action) {
+
+    const message =
+        document.getElementById("commandMessage");
+
+    try {
+
+        const response = await fetch(
+            "/api/motor/" + action,
+            {
+                method: "POST",
+
+                headers: {
+                    "X-CSRF-Token": csrfToken
+                }
+            }
+        );
+
+        const result = await response.json();
+
+        message.textContent =
+            result.message || result.error;
+
+    } catch (error) {
+
+        message.textContent =
+            "Motor command failed";
+    }
+}
+
+
+async function applySpeed() {
+
+    const speed = Number(
+        document.getElementById("speedSlider").value
+    );
+
+    const message =
+        document.getElementById("commandMessage");
+
+    try {
+
+        const response = await fetch(
+            "/api/motor/speed",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-Token": csrfToken
+                },
+
+                body: JSON.stringify({
+                    speed: speed
+                })
+            }
+        );
+
+        const result = await response.json();
+
+        message.textContent =
+            result.message || result.error;
+
+    } catch (error) {
+
+        message.textContent =
+            "Speed command failed";
+    }
+}
+
+
+async function updateDashboard() {
+
+    try {
+
+        const response = await fetch("/api/status");
+
+        if (!response.ok) {
+            throw new Error("Connection error");
+        }
+
+        const data = await response.json();
+
+        document.getElementById(
+            "temperature"
+        ).textContent =
+            data.temperature === null
+            ? "--"
+            : data.temperature + " °F";
+
+        document.getElementById(
+            "motor"
+        ).textContent = data.motor;
+
+        document.getElementById(
+            "speed"
+        ).textContent = data.speed + "% PWM";
+
+        const connection =
+            document.getElementById("connection");
+
+        connection.textContent =
+            data.connected ? "ONLINE" : "OFFLINE";
+
+        connection.className =
+            data.connected
+            ? "value green"
+            : "value red";
+
+        const security =
+            document.getElementById("security");
+
+        if (data.security_alert) {
+
+            security.textContent =
+                data.security_message;
+
+            security.className = "value red";
+
+        } else if (data.temperature_alert) {
+	    sendMotorCommand('off');
+	    activateSecurityAlarm("Overheating");
+
+            security.textContent =
+                data.security_message;
+
+            security.className = "value red";
+
+        } else {
+
+            security.textContent =
+                "SYSTEM NORMAL";
+
+            security.className = "value green";
+        }
+
+        document.getElementById(
+            "updated"
+        ).textContent =
+            data.last_update || "--";
+
+    } catch (error) {
+
+        document.getElementById(
+            "connection"
+        ).textContent = "OFFLINE";
+
+    }
+}
+
+updateDashboard();
+
+setInterval(updateDashboard, 2000);
+
+</script>
+
+</body>
+</html>

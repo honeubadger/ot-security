@@ -1,0 +1,33 @@
+[
+    {
+        "username": "Guido",
+        "password_hash": "scrypt:32768:8:1$ImmxBMNW2VgpUKjH$f780d18bb5d85b18d9d7827b4b492fe7d05c8846b4d554bdc76a71aae3942be83ce533aa9b597fe2336d281b50f5d1e36abc9e08942ff4a1a4a79ccbd4832cf1",
+        "role": "admin",
+        "rfid_uid": "266520233454"
+    },
+    {
+        "username": "Alex",
+        "password_hash": "scrypt:32768:8:1$yivnFVs9hGN3qf3p$8cfe5b1440cbda2b5c5616e0192b98809eb2a5565c10297cd0f9fcd7b0202c08b991aea63332bbb738b68e362025e9406962f7e570188874bac7f4136fdb9d11",
+        "role": "admin"
+    },
+    {
+        "username": "",
+        "password_hash": "scrypt:32768:8:1$OhvlqryZwKn4mc61$c912087e268f6a01c9d8df0a4859436c96ad47ad0fec978012307eafc65266f7adf5a562562512833dc073ef4116e0d95e43f986256c2d7e21f9d7212d3bf979",
+        "role": "admin"
+    },
+    {
+        "username": "Luigi",
+        "password_hash": "scrypt:32768:8:1$qbE3sls61L0xAZOf$8ad3f9eed8d741d5e1115ee82cfd4836c9b0c84089614f3f649481648d980ce98f072253ac5f5a50bedd682ce0a59391f989932417cff8f89d2b4a0ecafad850",
+        "role": "admin"
+    },
+    {
+        "username": "",
+        "password_hash": "scrypt:32768:8:1$0C20qKcHvTnljYBF$6527f4969d9091f63b5acc3bfcabfdbeee2c5e5f35a3661cb3674debb07e46dad064d3d98b880bc9ad575bcc20300f77a80c8be9f543ce7e3a5e0bc742af0d16",
+        "role": "admin"
+    },
+    {
+        "username": "",
+        "password_hash": "scrypt:32768:8:1$f9N7Pw6W23OWTCAS$d342ff241d8a1a456092ce0c6e3d9a03f094905f53091e953fb52582fe0e3407c61f93d8251964cce8d1ef451de6137def32d4b3a8ec4bda610f7c5532a38daf",
+        "role": "admin"
+    }
+]
